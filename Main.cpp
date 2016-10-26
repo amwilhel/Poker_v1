@@ -230,6 +230,7 @@ void delete_ll(deck* ll_deck) {
 		delete ll_deck;
 }
 
+//Prompt user again for a move
 void promptAgain(string move) {
 	while (!cin.good())
 	{
@@ -242,21 +243,16 @@ void promptAgain(string move) {
 	cin.ignore(1000, '\n'); // Ignore rest.
 }
 
+//Swaps a card in the deck
 bool SwapCard(int suit, int number, card* swap_card) {
 	card* card_ptr = ll_deck->head;
 	while (card_ptr) {
 		if (card_ptr->suit == suit && card_ptr->number == number) {
-			card card_in_hand = *swap_card; //I dont think I can do this
+			card card_in_hand = *swap_card; 
 			swap_card->number = card_ptr->number;
 			swap_card->suit = card_ptr->suit;
 			card_ptr->number = card_in_hand.number;
 			card_ptr->suit = card_in_hand.suit;
-			// this is what you do if player_hand is a deck
-			//card_ptr->prev->next = swap_card;
-			//swap_card->prev = card_ptr;
-			//swap_card->next = card_ptr->next;
-			//card_ptr->next->prev = swap_card;
-
 			return true;
 		}
 		card_ptr = card_ptr->next;
@@ -264,13 +260,13 @@ bool SwapCard(int suit, int number, card* swap_card) {
 	return false;
 }
 
-//Checks input for errors
+//Handles all the moves
 bool handle_move(string move) {
 
 	if (move == "DECK") {
 		printDeck(ll_deck);
-		cout << "Ready Player: ";
-		player_movestr.clear();
+		//cout << "Ready Player: ";
+		//player_movestr.clear();
 	}
 
 	else if (move == "EXIT") {
@@ -300,13 +296,13 @@ bool handle_move(string move) {
 		cin >> number;
 		cout << "Enter the suit (0 for Hearts; 1 for Diamonds; 2 for Clubs; 3 for Spades): ";
 		cin >> suit;
-		// TODO - you want to check if these values are within range. all 3 vars
 		printCard(letter_num);
 		bool swap_result = SwapCard(suit, number, &player_hand[letter_num]);
-		cin.clear();
-		cin.ignore(1000, '\n');
 		printHand();
-		return swap_result;
+		cout << "Enter the three cards you would like to keep: ";
+		cin.clear(); 
+		cin.ignore(1000, '\n'); 
+		return false;
 	}
 
 	else if (move.length() == 3) {
@@ -329,10 +325,8 @@ bool handle_move(string move) {
 			else {
 				cout << "You've entered an invalid move.  Please try again and enter a card A - E (case-sensitive)." << endl;
 				cout << "Enter the three cards you would like to keep: ";
-				cin.clear(); // Clear error flags.
-				cin.ignore(1000, '\n'); // Ignore rest.
-				//cin >> move; // Try again.
-				// you need to break from this for loop.
+				cin.clear(); 
+				cin.ignore(1000, '\n'); 
 				return false;
 				
 			}
@@ -343,14 +337,12 @@ bool handle_move(string move) {
 		cout << "Enter the three cards you would like to keep: ";
 		cin.clear(); // Clear error flags.
 		cin.ignore(1000, '\n'); // Ignore rest.
-		//cin >> move; // Try again.
 		return false;
 	}
 	cin.ignore(1000, '\n');
 	return true;
 }
-//void swap() {
-//}
+
 
 //Deal the cards 
 void deal() {
@@ -369,7 +361,7 @@ void deal() {
 	cout << "This many cards are left : " << count_items(ll_deck) << endl;
 }
 
-
+//Scores the players turn
 void score_turn() {
 	const int SIZE = 5;
 	int numbers[SIZE];
@@ -379,7 +371,6 @@ void score_turn() {
 	}
 
 	sort(numbers, numbers + SIZE);
-	//cout << "Sorted array: " << numbers[0] << numbers[1] << numbers[2] << numbers[3] << numbers[4] << endl;
 	  
 	//check for royal flush
 	if (numbers[0] == 10 && numbers[1] == 11 && numbers[2] == 12 && numbers[3] == 13 && numbers[4] == 14 && player_hand[0].suit == player_hand[1].suit && player_hand[0].suit == player_hand[2].suit && player_hand[0].suit == player_hand[3].suit && player_hand[0].suit == player_hand[4].suit) {
@@ -418,13 +409,22 @@ void score_turn() {
 	}
 
 	//check for three of a kind
-		for (int x = 0; x < 3; x++) {
-			if ((numbers[x] - numbers[x + 1] - numbers[x + 2]) == 0) {
+		for (int x = 0; x < 5; x++) {
+			if ((numbers[x] - numbers[x + 1] == 0) && (numbers[x] - numbers[x + 2] == 0)) {
 				cout << "Congratulations! You have a Three of a Kind and earned $3!" << endl;
 				player_bank += 3;
 				break;
-			
-		}
+			}
+			else if ((numbers[x] - numbers[x + 2] == 0) && (numbers[x] - numbers[x + 3] == 0)) {
+				cout << "Congratulations! You have a Three of a Kind and earned $3!" << endl;
+				player_bank += 3;
+				break;
+			}
+			else if ((numbers[x] - numbers[x + 3] == 0) && (numbers[x] - numbers[x + 4] == 0)) {
+				cout << "Congratulations! You have a Three of a Kind and earned $3!" << endl;
+				player_bank += 3;
+				break;
+			}
 	}
 
 	//check for two pair
@@ -461,7 +461,6 @@ void player_turn() {
 	while (player_bank != 0) {
 		++round;
 		cout << "Ready? Round: " << round << ". The ante is $1." << endl;
-		//player_bank = --player_bank;
 		--player_bank;
 		printBank();
 		deal();
@@ -472,12 +471,8 @@ void player_turn() {
 		}
 		printHand();
 
-		//Read in the move
+		//Read in the move and check what it should do
 		cout << "Enter the three cards you would like to keep: ";
-		//cin >> player_movestr;
-
-		//Check for valid input
-		//check_move(player_movestr);
 		do {
 			cin >> player_movestr;
 		} while (!handle_move(player_movestr));
@@ -485,13 +480,13 @@ void player_turn() {
 		// You need to check whether the user entered 'exit'
 		if (player_movestr == "EXIT") {
 			cout << " Hope you enjoyed your game.";
-		}else {
-			deal();
+		}
 
+			deal();
 			printHand();
 			score_turn();
 			printBank();
-		}
+		
 		cout << "---------------------------------" << endl;
 		cout << endl;
 
